@@ -31,11 +31,6 @@ public class FeedManager {
     private List<FeedItem> mFeeds = new ArrayList<FeedItem>();
 
     /**
-     * Observers interested in changes to the current search results
-     */
-//    private ArrayList<WeakReference<DataSetObserver>> mObservers = new ArrayList<WeakReference<DataSetObserver>>();
-
-    /**
      * True if we are in the process of loading
      */
     private boolean mLoading;
@@ -106,7 +101,6 @@ public class FeedManager {
 
     public void load() {
         mLoading = true;
-//        new NetworkThread().start();
         mGetFeed.cancel(true);
         mGetFeed = new GetFeed();
         final String url = "http://www.inmediahk.net/full/feed";
@@ -162,34 +156,4 @@ public class FeedManager {
             notifyObservers();
         }
     }
-    
-//    private class NetworkThread extends Thread {
-//
-//        public NetworkThread() {
-//        }
-//
-//        @Override
-//        public void run() {
-//
-//            Document doc;
-//            try {
-//                String url = "http://www.inmediahk.net/full/feed";
-//
-//                doc = Jsoup.connect(url).timeout(5000).get();
-//
-//                Elements items = doc.select("channel > item");
-//                for (Element item : items) {
-//                    FeedItem feed = new FeedItem();
-//                    feed.setData(item.select("title").text(), item.select("link").text(), item.select("pubDate").text(), item.select("dc|creator").text(),
-//                            item.select("description").text());
-//                    feed.recode();
-//                    mFeeds.add(feed);
-//                }
-//                mLoading = false;
-//                notifyObservers();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
 }
