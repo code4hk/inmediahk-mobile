@@ -17,7 +17,7 @@ import net.inmediahk.reader.Util.Utils;
  * An activity representing a single Item detail screen. This
  * activity is only used on handset devices. On tablet-size devices,
  * item details are presented side-by-side with a list of items
- * in a {@link ItemListActivity}.
+ * in a {@link net.inmediahk.reader.MainActivity}.
  * <p>
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link ItemDetailFragment}.
@@ -25,6 +25,7 @@ import net.inmediahk.reader.Util.Utils;
 public class ItemDetailActivity extends ActionBarActivity {
 
     private ItemDetailFragment mFragment;
+    private ShareActionProvider mShareActionProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,8 @@ public class ItemDetailActivity extends ActionBarActivity {
             Bundle arguments = new Bundle();
             arguments.putInt(ItemDetailFragment.ARG_ITEM_ID,
                     getIntent().getIntExtra(ItemDetailFragment.ARG_ITEM_ID, -1));
+            arguments.putParcelable(ItemDetailFragment.ARG_FEED,
+                    getIntent().getParcelableExtra(ItemDetailFragment.ARG_FEED));
             mFragment = new ItemDetailFragment();
             mFragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -60,8 +63,6 @@ public class ItemDetailActivity extends ActionBarActivity {
                     .commit();
         }
     }
-
-    private ShareActionProvider mShareActionProvider;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -87,7 +88,7 @@ public class ItemDetailActivity extends ActionBarActivity {
             //
             // http://developer.android.com/design/patterns/navigation.html#up-vs-back
             //
-            NavUtils.navigateUpTo(this, new Intent(this, ItemListActivity.class));
+            NavUtils.navigateUpTo(this, new Intent(this, MainActivity.class));
             return true;
         }
         return super.onOptionsItemSelected(item);

@@ -1,16 +1,11 @@
 package net.inmediahk.reader;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.ShareActionProvider;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -18,25 +13,24 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
-import net.inmediahk.reader.DAO.FeedManager;
 import net.inmediahk.reader.Model.FeedItem;
-
 
 /**
  * A fragment representing a single Item detail screen.
- * This fragment is either contained in a {@link ItemListActivity}
+ * This fragment is either contained in a {@MainActivity}
  * in two-pane mode (on tablets) or a {@link ItemDetailActivity}
  * on handsets.
  */
 public class ItemDetailFragment extends Fragment {
 
-    private FeedManager mFeedManager;
-    private FeedItem mItem;
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
      */
     public static final String ARG_ITEM_ID = "item_id";
+    public static final String ARG_FEED = "feed_item";
+//    private FeedManager mFeedManager;
+    private FeedItem mItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -50,9 +44,11 @@ public class ItemDetailFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        mFeedManager = FeedManager.getInstance(getActivity());
+//        mFeedManager = FeedManager.getInstance(getActivity());
+//        mFeedManager = new FeedManager(getActivity());
         if (getArguments().containsKey(ARG_ITEM_ID)) {
-            mItem = mFeedManager.get(getArguments().getInt(ARG_ITEM_ID));
+//            mItem = mFeedManager.get(getArguments().getInt(ARG_ITEM_ID));
+            mItem = getArguments().getParcelable(ARG_FEED);
         }
     }
 

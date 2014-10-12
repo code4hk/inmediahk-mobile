@@ -1,8 +1,6 @@
 package net.inmediahk.reader.Adapter;
 
 import android.content.Context;
-import android.text.Html;
-import android.text.method.LinkMovementMethod;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,35 +8,34 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import net.inmediahk.reader.Model.FeedItem;
-import net.inmediahk.reader.DAO.FeedManager;
 import net.inmediahk.reader.R;
 
 import java.util.ArrayList;
-import java.util.List;
 
-/**
- * Created by allen517 on 10/10/14.
- */
 public class FeedAdapter extends BaseAdapter {
 
     private LayoutInflater mInflater = null;
     private Context mContext = null;
-    private FeedManager mFeedManager;
+
+    private ArrayList<FeedItem> listItem = new ArrayList<FeedItem>();
 
     public FeedAdapter(Context c) {
-        mFeedManager = FeedManager.getInstance(c);
         mContext = c;
         mInflater = LayoutInflater.from(c);
     }
 
+    public void setData (ArrayList<FeedItem> listItem) {
+        this.listItem = listItem;
+    }
+
     @Override
     public int getCount() {
-        return this.mFeedManager.size();
+        return this.listItem.size();
     }
 
     @Override
     public FeedItem getItem(int position) {
-        return this.mFeedManager.get(position);
+        return this.listItem.get(position);
     }
 
     @Override

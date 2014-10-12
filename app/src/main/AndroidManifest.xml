@@ -12,7 +12,7 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.Orange" >
         <activity
-            android:name="net.inmediahk.reader.ItemListActivity"
+            android:name="net.inmediahk.reader.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,7 +23,7 @@
         <activity
             android:name="net.inmediahk.reader.ItemDetailActivity"
             android:label="@string/app_name"
-            android:parentActivityName="net.inmediahk.reader.ItemListActivity"
+            android:parentActivityName="net.inmediahk.reader.MainActivity"
             android:theme="@style/AppTheme" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"

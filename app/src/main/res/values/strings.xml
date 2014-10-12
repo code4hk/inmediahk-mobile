@@ -5,5 +5,11 @@
     <string name="title_item_detail">Item Detail</string>
     <string name="title_topic_list">topcis</string>
     <string name="title_topic_detail">topic Detail</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_section1">Section 1</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section3">Section 3</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

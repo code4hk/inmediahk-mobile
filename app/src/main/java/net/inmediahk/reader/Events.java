@@ -4,8 +4,9 @@ public class Events {
 
     public static class FeedAdapterUpdatedEvent{
 
-        public FeedAdapterUpdatedEvent() {
-
+        int id;
+        public FeedAdapterUpdatedEvent(int id) {
+            this.id = id;
         }
     }
 }

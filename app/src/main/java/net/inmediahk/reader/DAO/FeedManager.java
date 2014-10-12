@@ -1,50 +1,52 @@
 package net.inmediahk.reader.DAO;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.util.Log;
 
 import net.inmediahk.reader.Events;
 import net.inmediahk.reader.Model.FeedItem;
 import net.inmediahk.reader.Util.OkHTTPClient;
+import net.inmediahk.reader.Util.Utils;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
+
+import java.util.ArrayList;
 
 import de.greenrobot.event.EventBus;
 
 public class FeedManager {
 
+    GetFeed mGetFeed = new GetFeed();
     /**
      * Holds the single instance of a NewsManager that is shared by the process.
      */
-    private static FeedManager sInstance;
-
+//    private static FeedManager sInstance;
+    private int mTabId = 0;
     /**
      * Holds the images and related data that have been downloaded
      */
-    private List<FeedItem> mFeeds = new ArrayList<FeedItem>();
-
+    private ArrayList<FeedItem> mFeeds = new ArrayList<FeedItem>();
     /**
      * True if we are in the process of loading
      */
     private boolean mLoading;
 
+//    public static FeedManager getInstance(Context c) {
+//        if (sInstance == null) {
+//            sInstance = new FeedManager(c.getApplicationContext());
+//            for(int x = 0;x<Settings.TOTAL_TABS;x++){
+//                sInstance.mFeeds.add(new ArrayList<FeedItem>());
+//            }
+//        }
+//        return sInstance;
+//    }
     private Context mContext;
 
-    public static FeedManager getInstance(Context c) {
-        if (sInstance == null) {
-            sInstance = new FeedManager(c.getApplicationContext());
-        }
-        return sInstance;
-    }
-
-    private FeedManager(Context c) {
+    public FeedManager(Context c) {
         mContext = c;
     }
 
@@ -64,25 +66,16 @@ public class FeedManager {
     }
 
     /**
-     * Add an item to and notify observers of the change.
-     *
-     * @param item The item to add
-     */
-    private void add(FeedItem item) {
-        mFeeds.add(item);
-        notifyObservers();
-    }
-
-    private void add(ArrayList<FeedItem> items) {
-        mFeeds = items;
-        notifyObservers();
-    }
-
-    /**
      * @return The number of items displayed so far
      */
     public int size() {
-        return mFeeds.size();
+        try {
+            return mFeeds.size();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return 0;
+        } catch (IndexOutOfBoundsException e) {
+            return 0;
+        }
     }
 
     /**
@@ -95,19 +88,26 @@ public class FeedManager {
     /**
      * Gets the all items
      */
-    public List<FeedItem> get() {
+    public ArrayList<FeedItem> get() {
         return mFeeds;
     }
 
-    public void load() {
-        mLoading = true;
-        mGetFeed.cancel(true);
-        mGetFeed = new GetFeed();
-        final String url = "http://www.inmediahk.net/full/feed";
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
-            mGetFeed.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
-        else
-            mGetFeed.execute(url);
+    public void load(String url, boolean firstLoad, int tabId) {
+        mTabId = tabId;
+        final ArrayList<FeedItem> feedItems = Utils.getStringProperty(mContext, url);
+        if (feedItems != null && feedItems.size() > 0 && !firstLoad) {
+            mFeeds = feedItems;
+            mLoading = false;
+            notifyObservers();
+        } else {
+            mLoading = true;
+            mGetFeed.cancel(true);
+            mGetFeed = new GetFeed();
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                mGetFeed.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
+            else
+                mGetFeed.execute(url);
+        }
     }
 
     /**
@@ -115,14 +115,13 @@ public class FeedManager {
      * valid along the way.
      */
     private void notifyObservers() {
-        EventBus.getDefault().post(new Events.FeedAdapterUpdatedEvent());
+        EventBus.getDefault().post(new Events.FeedAdapterUpdatedEvent(mTabId));
     }
 
-    GetFeed mGetFeed = new GetFeed();
     private class GetFeed extends AsyncTask<String, Integer, Boolean> {
 
-        private OkHTTPClient mHTTPClient = new OkHTTPClient();
         public final static String DEFAULT_ENCODE = "UTF-8";
+        private OkHTTPClient mHTTPClient = new OkHTTPClient();
 
         @Override
         protected void onPreExecute() {
@@ -135,6 +134,8 @@ public class FeedManager {
 
             final String result = mHTTPClient.get(param[0]);
 
+            Log.d("inmediahk", "---- url: " + param[0]);
+
             try {
                 final Elements items = Jsoup.parse(result).select("channel > item");
 
@@ -144,6 +145,8 @@ public class FeedManager {
                             item.select("description").text());
                     mFeeds.add(feed);
                 }
+                Utils.setStringProperty(mContext, param[0], mFeeds);
+                Log.d("inmediahk", "---- done: " + param[0] + " : " + mFeeds.get(0).getTitle());
                 return true;
             } catch (Exception e) {
                 e.printStackTrace();
