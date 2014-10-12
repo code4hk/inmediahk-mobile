@@ -16,13 +16,15 @@
         android:id="@+id/txtDesc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall" />
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="#555"
+        android:textSize="16sp" />
 
     <TextView
         android:id="@+id/txtDate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
+        android:layout_gravity="end"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:textColor="@android:color/darker_gray" />
 </LinearLayout>

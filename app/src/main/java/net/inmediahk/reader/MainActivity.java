@@ -8,9 +8,13 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.ShareActionProvider;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import net.inmediahk.reader.Model.FeedItem;
 import net.inmediahk.reader.Util.Utils;
@@ -36,8 +40,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
      * The {@link ViewPager} that will host the section contents.
      */
     ViewPager mViewPager;
+    FeedItem currentItem;
     private boolean mTwoPane;
     private List<Fragment> mFragmentArray = new ArrayList<Fragment>();
+    private ShareActionProvider mShareActionProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +60,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         final ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        for(int x = 0;x<Settings.TOTAL_TABS;x++){
-            mFragmentArray.add(getTaxonomy(x));
+        for (int x = 0; x < Settings.TOTAL_TABS; x++) {
+            mFragmentArray.add(getCategory(x));
         }
 
         // Create the adapter that will return a fragment for each of the three
@@ -132,7 +138,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
     }
 
-    public Fragment getTaxonomy(int position) {
+    public Fragment getCategory(int position) {
         Bundle arguments = new Bundle();
         arguments.putInt(ItemListFragment.ARG_ITEM_ID, position);
         ItemListFragment fragment = new ItemListFragment();
@@ -142,6 +148,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
     @Override
     public void onItemSelected(int id, FeedItem item) {
+        currentItem = item;
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
@@ -177,6 +184,32 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         super.onDestroy();
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (mTwoPane) {
+            getMenuInflater().inflate(R.menu.share_menu, menu);
+
+            // Set up ShareActionProvider's default share intent
+            MenuItem shareItem = menu.findItem(R.id.menu_item_share);
+            mShareActionProvider = (ShareActionProvider)
+                    MenuItemCompat.getActionProvider(shareItem);
+            mShareActionProvider.setShareIntent(getDefaultIntent());
+
+            return super.onCreateOptionsMenu(menu);
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    public Intent getDefaultIntent() {
+        if (currentItem == null) return null;
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        intent.putExtra(Intent.EXTRA_SUBJECT, currentItem.getTitle());
+        intent.putExtra(Intent.EXTRA_TEXT, currentItem.getLink());
+        return intent;
+    }
+
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
      * one of the sections/tabs/pages.
@@ -201,7 +234,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         @Override
         public CharSequence getPageTitle(int position) {
-            switch(position) {
+            switch (position) {
                 case 1:
                     return Settings.CATEGORY_LIST.get(1).getName();
                 case 2:
@@ -224,5 +257,4 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             }
         }
     }
-
 }

@@ -10,6 +10,7 @@ import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import net.inmediahk.reader.Model.FeedItem;
 import net.inmediahk.reader.Util.Utils;
 
 
@@ -72,9 +73,19 @@ public class ItemDetailActivity extends ActionBarActivity {
         MenuItem shareItem = menu.findItem(R.id.menu_item_share);
         mShareActionProvider = (ShareActionProvider)
                 MenuItemCompat.getActionProvider(shareItem);
-        mShareActionProvider.setShareIntent(mFragment.getDefaultIntent());
+        mShareActionProvider.setShareIntent(getDefaultIntent());
 
         return super.onCreateOptionsMenu(menu);
+    }
+
+    public Intent getDefaultIntent() {
+        FeedItem item = getIntent().getParcelableExtra(ItemDetailFragment.ARG_FEED);
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        intent.putExtra(Intent.EXTRA_SUBJECT, item.getTitle());
+        intent.putExtra(Intent.EXTRA_TEXT, item.getLink());
+        return intent;
     }
 
     @Override

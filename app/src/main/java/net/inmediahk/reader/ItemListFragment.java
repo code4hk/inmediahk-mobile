@@ -11,10 +11,12 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import net.inmediahk.reader.Adapter.FeedAdapter;
 import net.inmediahk.reader.DAO.FeedManager;
 import net.inmediahk.reader.Model.FeedItem;
+import net.inmediahk.reader.Util.Utils;
 
 /**
  * A list fragment representing a list of Items. This fragment
@@ -137,6 +139,10 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     private void refresh() {
+        if (!Utils.isOnline(getActivity())) {
+            Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
+            return;
+        }
         mFeedManager.clear();
         mFeedManager.load(Settings.CATEGORY_LIST.get(mTaxonomyId).getUrl(), mFirstLoad, mTaxonomyId);
         mFirstLoad = false;
@@ -173,6 +179,7 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
     }
 
     public void notifyDataSetChanged() {
+        if (mAdapter == null) return;
         mAdapter.notifyDataSetChanged();
         mAdapter.setData(mFeedManager.get());
         if (!mFeedManager.isLoading())

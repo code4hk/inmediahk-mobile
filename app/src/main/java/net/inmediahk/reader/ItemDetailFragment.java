@@ -1,6 +1,5 @@
 package net.inmediahk.reader;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Html;
@@ -44,10 +43,7 @@ public class ItemDetailFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-//        mFeedManager = FeedManager.getInstance(getActivity());
-//        mFeedManager = new FeedManager(getActivity());
         if (getArguments().containsKey(ARG_ITEM_ID)) {
-//            mItem = mFeedManager.get(getArguments().getInt(ARG_ITEM_ID));
             mItem = getArguments().getParcelable(ARG_FEED);
         }
     }
@@ -59,6 +55,7 @@ public class ItemDetailFragment extends Fragment {
 
         if (mItem != null) {
             ((TextView) rootView.findViewById(R.id.txtTitle)).setText(mItem.getTitle());
+            ((TextView) rootView.findViewById(R.id.txtAuthor)).setText("文：" + mItem.getCreator());
             ((TextView) rootView.findViewById(R.id.txtDate)).setText(mItem.getDate());
             ((TextView) rootView.findViewById(R.id.txtDesc)).setText(Html.fromHtml(mItem.getContent()));
             if (!mItem.getImageUrl().equals(""))
@@ -69,12 +66,4 @@ public class ItemDetailFragment extends Fragment {
         return rootView;
     }
 
-    public Intent getDefaultIntent() {
-        Intent intent = new Intent(Intent.ACTION_SEND);
-        intent.setType("text/plain");
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-        intent.putExtra(Intent.EXTRA_SUBJECT, mItem.getTitle());
-        intent.putExtra(Intent.EXTRA_TEXT, mItem.getLink());
-        return intent;
-    }
 }
