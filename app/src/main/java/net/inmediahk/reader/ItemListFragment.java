@@ -2,6 +2,7 @@ package net.inmediahk.reader;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
@@ -23,7 +24,7 @@ import net.inmediahk.reader.Util.Utils;
  * also supports tablet devices by allowing list items to be given an
  * 'activated' state upon selection. This helps indicate which item is
  * currently being viewed in a {@link ItemDetailFragment}.
- * <p>
+ * <p/>
  * Activities containing this fragment MUST implement the {@link net.inmediahk.reader.ItemListFragment.Callbacks}
  * interface.
  */
@@ -54,13 +55,14 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
     private AbsListView mListView;
     private SwipeRefreshLayout mSwipeLayout;
     private FeedAdapter mAdapter;
-    private int mTaxonomyId;
+    private int mCategoryId;
     private FeedItem mItem;
-    private boolean mFirstLoad= true;
+    private boolean mFirstLoad = true;
     /**
      * The current activated item position. Only used on tablets.
      */
     private int mActivatedPosition = ListView.INVALID_POSITION;
+    private Handler mHandler = new Handler();
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -77,7 +79,7 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
 //        mFeedManager = FeedManager.getInstance(getActivity());
         mFeedManager = new FeedManager(getActivity());
         if (getArguments().containsKey(ARG_ITEM_ID)) {
-            mTaxonomyId = getArguments().getInt(ARG_ITEM_ID);
+            mCategoryId = getArguments().getInt(ARG_ITEM_ID);
         }
     }
 
@@ -140,13 +142,15 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
 
     private void refresh() {
         if (!Utils.isOnline(getActivity())) {
+            mFeedManager.loadCache(Settings.CATEGORY_LIST.get(mCategoryId).getUrl(), mCategoryId);
             Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
             return;
         }
         mFeedManager.clear();
-        mFeedManager.load(Settings.CATEGORY_LIST.get(mTaxonomyId).getUrl(), mFirstLoad, mTaxonomyId);
+        mFeedManager.load(Settings.CATEGORY_LIST.get(mCategoryId).getUrl(), mFirstLoad, mCategoryId);
         mFirstLoad = false;
         mSwipeLayout.setRefreshing(true);
+        mHandler.postDelayed(mCheckFinish, 200);
     }
 
     @Override
@@ -160,6 +164,17 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
 
         mCallbacks = (Callbacks) activity;
     }
+
+    private Runnable mCheckFinish = new Runnable() {
+        @Override
+        public void run() {
+            mHandler.removeCallbacks(mCheckFinish);
+            if (!mFeedManager.isLoading()) {
+                mSwipeLayout.setRefreshing(false);
+            } else
+                mHandler.postDelayed(mCheckFinish, 200);
+        }
+    };
 
     @Override
     public void onDetach() {
@@ -186,6 +201,18 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
             mSwipeLayout.setRefreshing(false);
     }
 
+    /**
+     * A callback interface that all activities containing this fragment must
+     * implement. This mechanism allows activities to be notified of item
+     * selections.
+     */
+    public interface Callbacks {
+        /**
+         * Callback for when an item has been selected.
+         */
+        public void onItemSelected(int id, FeedItem item);
+    }
+
 //    /**
 //     * Turns on activate-on-click mode. When this mode is on, list items will be
 //     * given the 'activated' state when touched.
@@ -208,15 +235,5 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
 //        mActivatedPosition = position;
 //    }
 
-    /**
-     * A callback interface that all activities containing this fragment must
-     * implement. This mechanism allows activities to be notified of item
-     * selections.
-     */
-    public interface Callbacks {
-        /**
-         * Callback for when an item has been selected.
-         */
-        public void onItemSelected(int id, FeedItem item);
-    }
+
 }

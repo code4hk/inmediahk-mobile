@@ -35,7 +35,7 @@ public class FeedManager {
      */
     private boolean mLoading;
 
-//    public static FeedManager getInstance(Context c) {
+    //    public static FeedManager getInstance(Context c) {
 //        if (sInstance == null) {
 //            sInstance = new FeedManager(c.getApplicationContext());
 //            for(int x = 0;x<Settings.TOTAL_TABS;x++){
@@ -103,10 +103,19 @@ public class FeedManager {
             mLoading = true;
             mGetFeed.cancel(true);
             mGetFeed = new GetFeed();
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
                 mGetFeed.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, url);
             else
                 mGetFeed.execute(url);
+        }
+    }
+
+    public void loadCache(String url, int tabId) {
+        final ArrayList<FeedItem> feedItems = Utils.getStringProperty(mContext, url);
+        if (feedItems.size() > 0) {
+            mTabId = tabId;
+            mFeeds = feedItems;
+            notifyObservers();
         }
     }
 
