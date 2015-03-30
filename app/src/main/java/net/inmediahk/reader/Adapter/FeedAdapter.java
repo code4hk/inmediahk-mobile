@@ -17,7 +17,7 @@ public class FeedAdapter extends BaseAdapter {
     private LayoutInflater mInflater = null;
     private Context mContext = null;
 
-    private ArrayList<FeedItem> listItem = new ArrayList<FeedItem>();
+    private ArrayList<FeedItem> listItem = new ArrayList<>();
 
     public FeedAdapter(Context c) {
         mContext = c;
@@ -50,8 +50,8 @@ public class FeedAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.item_list, null);
             holder = new ViewHolder();
-            holder.txtTitle = (TextView) convertView.findViewById(R.id.txtTitle);
-            holder.txtDesc = (TextView) convertView.findViewById(R.id.txtDesc);
+            holder.txtTitle = (TextView) convertView.findViewById(R.id.txtName);
+            holder.txtDesc = (TextView) convertView.findViewById(R.id.txtMessage);
             holder.txtDate = (TextView) convertView.findViewById(R.id.txtDate);
             convertView.setTag(holder);
         } else {

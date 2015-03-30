@@ -5,33 +5,48 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 
-import net.inmediahk.reader.Model.FeedItem;
+import com.google.gson.Gson;
+
+import net.inmediahk.reader.Events;
+import net.inmediahk.reader.Model.FacebookItem;
+import net.inmediahk.reader.Model.FacebookResponse;
 import net.inmediahk.reader.Util.OkHTTPClient;
 import net.inmediahk.reader.Util.Utils;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-
 import java.util.ArrayList;
+import java.util.Iterator;
 
-public class FeedManager {
+import de.greenrobot.event.EventBus;
+
+public class FacebookFeedManager {
 
     GetFeed mGetFeed = new GetFeed();
-
+    /**
+     * Holds the single instance of a NewsManager that is shared by the process.
+     */
+//    private static FeedManager sInstance;
     private int mTabId = 0;
     /**
      * Holds the images and related data that have been downloaded
      */
-    private ArrayList<FeedItem> mFeeds = new ArrayList<>();
+    private ArrayList<FacebookItem> mFeeds = new ArrayList<>();
     /**
      * True if we are in the process of loading
      */
     private boolean mLoading;
 
+    //    public static FeedManager getInstance(Context c) {
+//        if (sInstance == null) {
+//            sInstance = new FeedManager(c.getApplicationContext());
+//            for(int x = 0;x<Settings.TOTAL_TABS;x++){
+//                sInstance.mFeeds.add(new ArrayList<FacebookFeed>());
+//            }
+//        }
+//        return sInstance;
+//    }
     private Context mContext;
 
-    public FeedManager(Context c) {
+    public FacebookFeedManager(Context c) {
         mContext = c;
     }
 
@@ -66,22 +81,22 @@ public class FeedManager {
     /**
      * Gets the item at the specified position
      */
-    public FeedItem get(int position) {
+    public FacebookItem get(int position) {
         return mFeeds.get(position);
     }
 
     /**
      * Gets the all items
      */
-    public ArrayList<FeedItem> get() {
+    public ArrayList<FacebookItem> get() {
         return mFeeds;
     }
 
     public void load(String url, boolean firstLoad, int tabId) {
         mTabId = tabId;
-        final ArrayList<FeedItem> feedItems = Utils.getFeedProperty(mContext, url);
-        if (feedItems != null && feedItems.size() > 0 && !firstLoad) {
-            mFeeds = feedItems;
+        final ArrayList<FacebookItem> facebookItems = Utils.getFacebookProperty(mContext, url);
+        if (facebookItems != null && facebookItems.size() > 0 && !firstLoad) {
+            mFeeds = facebookItems;
             mLoading = false;
             notifyObservers();
         } else {
@@ -96,10 +111,10 @@ public class FeedManager {
     }
 
     public void loadCache(String url, int tabId) {
-        final ArrayList<FeedItem> feedItems = Utils.getFeedProperty(mContext, url);
-        if (feedItems != null && feedItems.size() > 0) {
+        final ArrayList<FacebookItem> facebookItems = Utils.getFacebookProperty(mContext, url);
+        if (facebookItems != null && facebookItems.size() > 0) {
             mTabId = tabId;
-            mFeeds = feedItems;
+            mFeeds = facebookItems;
             notifyObservers();
         }
     }
@@ -109,12 +124,14 @@ public class FeedManager {
      * valid along the way.
      */
     private void notifyObservers() {
-//        EventBus.getDefault().post(new Events.FeedAdapterUpdatedEvent(mTabId));
+        Log.d("GetFeed", "notifyObservers");
+        EventBus.getDefault().post(new Events.FeedAdapterUpdatedEvent(1));
     }
 
     private class GetFeed extends AsyncTask<String, Integer, Boolean> {
 
         private OkHTTPClient mHTTPClient = new OkHTTPClient();
+        private FacebookResponse facebookResponse;
 
         @Override
         protected void onPreExecute() {
@@ -126,28 +143,28 @@ public class FeedManager {
             Thread.currentThread().setName("GetFeed");
 
             final String result = mHTTPClient.get(param[0]);
-
-            Log.d("inmediahk", "---- url: " + param[0]);
+            Log.d("GetFeed", "Start get feed");
 
             try {
-                final Elements items = Jsoup.parse(result).select("channel > item");
-
-                for (Element item : items) {
-                    FeedItem feed = new FeedItem();
-                    feed.setData(item.select("title").text(), item.textNodes().get(2).toString(), item.select("pubDate").text(), item.select("dc|creator").text(),
-                            item.select("description").text());
-                    mFeeds.add(feed);
+                facebookResponse = new Gson().fromJson(result, FacebookResponse.class);
+                mFeeds = facebookResponse.getData();
+                for (Iterator<FacebookItem> it = mFeeds.iterator(); it.hasNext(); ) {
+                    FacebookItem item = it.next();
+                    if (!item.isSelfPost()) {
+                        Log.d("GetFeed", "Remove: " + item.getName());
+                        it.remove();
+                    }
                 }
-                Utils.setFeedProperty(mContext, param[0], mFeeds);
-                Log.d("inmediahk", "---- done: " + param[0] + " : " + mFeeds.get(0).getTitle());
-                return true;
             } catch (Exception e) {
                 e.printStackTrace();
                 return false;
             }
+            Log.d("GetFeed", "No error");
+            return true;
         }
 
         protected void onPostExecute(Boolean result) {
+            Log.d("GetFeed", "size: " + mFeeds.size());
             mLoading = false;
             notifyObservers();
         }

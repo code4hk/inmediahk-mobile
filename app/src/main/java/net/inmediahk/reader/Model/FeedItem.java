@@ -2,6 +2,7 @@ package net.inmediahk.reader.Model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.text.TextUtils;
 
 import org.jsoup.Jsoup;
 
@@ -28,7 +29,7 @@ public class FeedItem implements Parcelable {
     private String mTitle = "", mLink = "", mDate = "", mCreator = "", mDesc = "", mContent = "", mImageUrl = "";
     private int mId;
 
-public FeedItem(){
+    public FeedItem() {
 
     }
 
@@ -62,7 +63,11 @@ public FeedItem(){
         mLink = Link;
         mDate = praseDate(Date);
         mCreator = Creator;
-        mDesc = Jsoup.parse(Desc).text().substring(0, 90) + "...";
+        final String s = Jsoup.parse(Desc).text();
+        if (!TextUtils.isEmpty(s) && s.length() >= 90)
+            mDesc = s.substring(0, 90) + "...";
+        else
+            mDesc = "";
         mContent = Desc;
         recode();
     }

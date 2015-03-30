@@ -14,7 +14,11 @@ public class Settings {
     // <a href="http://www.inmediahk.net/taxonomy/term/5043" title="">動物</a>
     // <a href="http://www.inmediahk.net/taxonomy/term/510975" title="">體育</a>
     public final static String URL_BASE = "http://www.inmediahk.net/";
+    public final static String URL_PROXY_BASE = "http://inmediahk-api.code4.hk/";
+    public static final String FACEBOOK_ID = "200954406608272";
     public final static int TOTAL_TABS = 9;
+
+    public static final String URL_FACEBOOK = "https://graph.facebook.com/inmediahk/feed?access_token=1574650336097721%7C3VKjA7neSKWvVz6ZvLQmrJpPc40";
 
     public final static List<Category> CATEGORY_LIST = Arrays.asList(
             new Category("主 頁", -1),
@@ -37,11 +41,18 @@ public class Settings {
             this.id = id;
         }
 
-        public String getUrl() {
-            if (this.id == -1)
-                return URL_BASE+"full/feed";
-            else
-                return URL_BASE+"taxonomy/term/"+id+"/feed";
+        public String getUrl(boolean useProxy) {
+            if (useProxy) {
+                if (this.id == -1)
+                    return URL_PROXY_BASE + "full.xml";
+                else
+                    return URL_PROXY_BASE + id + ".xml";
+            } else {
+                if (this.id == -1)
+                    return URL_BASE + "full/feed";
+                else
+                    return URL_BASE + "taxonomy/term/" + id + "/feed";
+            }
         }
 
         public String getName() {

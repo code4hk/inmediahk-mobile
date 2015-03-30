@@ -40,7 +40,7 @@ public class ItemDetailFragment extends Fragment {
      */
     public static final String ARG_ITEM_ID = "item_id";
     public static final String ARG_FEED = "feed_item";
-//    private FeedManager mFeedManager;
+
     private FeedItem mItem;
     private TextView mTv;
     private Html.ImageGetter imgGetter = new Html.ImageGetter() {
@@ -78,10 +78,10 @@ public class ItemDetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_item_detail, container, false);
-        mTv = (TextView) rootView.findViewById(R.id.txtDesc);
+        mTv = (TextView) rootView.findViewById(R.id.txtMessage);
 
         if (mItem != null) {
-            ((TextView) rootView.findViewById(R.id.txtTitle)).setText(mItem.getTitle());
+            ((TextView) rootView.findViewById(R.id.txtName)).setText(mItem.getTitle());
             ((TextView) rootView.findViewById(R.id.txtAuthor)).setText("文：" + mItem.getCreator());
             ((TextView) rootView.findViewById(R.id.txtDate)).setText(mItem.getDate());
 
@@ -106,9 +106,9 @@ public class ItemDetailFragment extends Fragment {
             try {
                 InputStream is = new URL(source).openStream();
                 return BitmapFactory.decodeStream(is);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
             } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -121,7 +121,7 @@ public class ItemDetailFragment extends Fragment {
             if (bitmap != null) {
                 BitmapDrawable d = new BitmapDrawable(bitmap);
 
-                int width = mTv.getWidth() < bitmap.getWidth() ? mTv.getWidth() : bitmap.getWidth();
+                int width = mTv.getWidth();
                 int height = bitmap.getHeight() * width / bitmap.getWidth();
 
                 mDrawable.addLevel(1, 1, d);

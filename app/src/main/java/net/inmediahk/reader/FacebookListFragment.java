@@ -1,6 +1,6 @@
 package net.inmediahk.reader;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
@@ -15,21 +15,12 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import net.inmediahk.reader.Adapter.FeedAdapter;
-import net.inmediahk.reader.DAO.FeedManager;
-import net.inmediahk.reader.Model.FeedItem;
+import net.inmediahk.reader.Adapter.FacebookFeedAdapter;
+import net.inmediahk.reader.DAO.FacebookFeedManager;
+import net.inmediahk.reader.Model.FacebookItem;
 import net.inmediahk.reader.Util.Utils;
 
-/**
- * A list fragment representing a list of Items. This fragment
- * also supports tablet devices by allowing list items to be given an
- * 'activated' state upon selection. This helps indicate which item is
- * currently being viewed in a {@link ItemDetailFragment}.
- * <p/>
- * Activities containing this fragment MUST implement the {@link net.inmediahk.reader.ItemListFragment.Callbacks}
- * interface.
- */
-public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
+public class FacebookListFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     public static final String ARG_ITEM_ID = "item_id";
     public static final String ARG_FEED = "feed_item";
@@ -38,26 +29,18 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
      * activated item position. Only used on tablets.
      */
     private static final String STATE_ACTIVATED_POSITION = "activated_position";
-    /**
-     * A dummy implementation of the {@link net.inmediahk.reader.ItemListFragment.Callbacks} interface that does
-     * nothing. Used only when this fragment is not attached to an activity.
-     */
-    private static Callbacks sDummyCallbacks = new Callbacks() {
-        @Override
-        public void onItemSelected(int id, FeedItem item) {
-        }
-    };
-    boolean mLastUseProxyState;
+
     /**
      * The fragment's current callback object, which is notified of list item
      * clicks.
      */
-    private Callbacks mCallbacks = sDummyCallbacks;
-    private FeedManager mFeedManager;
+
+    private FacebookFeedManager mFacebookFeedManager;
     private AbsListView mListView;
-    private SwipeRefreshLayout mSwipeLayout;
-    private FeedAdapter mAdapter;
+    private SwipeRefreshLayout mSwipeLayout, mSwipeLayoutEmpty;
+    private FacebookFeedAdapter mAdapter;
     private int mCategoryId;
+    private FacebookItem mItem;
     private boolean mFirstLoad = true;
     /**
      * The current activated item position. Only used on tablets.
@@ -68,12 +51,8 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
         @Override
         public void run() {
             mHandler.removeCallbacks(mCheckFinish);
-            if (!mFeedManager.isLoading()) {
-                notifyDataSetChanged();
+            if (!mFacebookFeedManager.isLoading()) {
                 mSwipeLayout.setRefreshing(false);
-                if (mFeedManager.get().size() == 0) {
-                    refresh(false);
-                }
             } else
                 mHandler.postDelayed(mCheckFinish, 200);
         }
@@ -83,7 +62,7 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public ItemListFragment() {
+    public FacebookListFragment() {
     }
 
     @Override
@@ -91,7 +70,7 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        mFeedManager = new FeedManager(getActivity());
+        mFacebookFeedManager = new FacebookFeedManager(getActivity());
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             mCategoryId = getArguments().getInt(ARG_ITEM_ID);
         }
@@ -100,8 +79,8 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_list, container, false);
-
+        View view = inflater.inflate(R.layout.fragment_fb_list, container, false);
+        mSwipeLayoutEmpty = (SwipeRefreshLayout) view.findViewById(R.id.swipeRefreshLayout_emptyView);
         mSwipeLayout = (SwipeRefreshLayout) view.findViewById(R.id.swipe_container);
         mSwipeLayout.setOnRefreshListener(this);
         mSwipeLayout.setColorSchemeResources(R.color.app_color,
@@ -110,22 +89,30 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
                 R.color.app_bg_color);
 
         mListView = (ListView) view.findViewById(R.id.mListView);
-        mListView.setEmptyView(view.findViewById(R.id.swipeRefreshLayout_emptyView));
+
         // Set the adapter
-        mAdapter = new FeedAdapter(getActivity());
+        mAdapter = new FacebookFeedAdapter(getActivity());
         ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
 
         // Set OnItemClickListener so we can be notified on item clicks
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallbacks.onItemSelected(position, mFeedManager.get(position));
+
+                Intent intent = new Intent(getActivity(), FacebookView.class);
+                intent.putExtra("facebook_url", mFacebookFeedManager.get(position).getLink());
+                intent.putExtra("facebook_title", mFacebookFeedManager.get(position).getName());
+                startActivity(intent);
             }
         });
         mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                mCallbacks.onItemSelected(position, mFeedManager.get(position));
+                Intent intent = new Intent(getActivity(), FacebookView.class);
+                intent.putExtra("facebook_url", mFacebookFeedManager.get(position).getLink());
+                intent.putExtra("facebook_title", mFacebookFeedManager.get(position).getName());
+                startActivity(intent);
+
                 return false;
             }
         });
@@ -143,86 +130,56 @@ public class ItemListFragment extends Fragment implements SwipeRefreshLayout.OnR
 ////            setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
 //        }
 
-        if (mFeedManager.size() == 0 && !mFeedManager.isLoading()) {
-            refresh(true);
+        if (mFacebookFeedManager.size() == 0 && !mFacebookFeedManager.isLoading()) {
+            refresh();
         }
     }
 
     @Override
     public void onRefresh() {
-        if (!mFeedManager.isLoading()) {
-            refresh(true);
+        if (!mFacebookFeedManager.isLoading()) {
+            refresh();
         }
     }
 
-    private void refresh(boolean useProxy) {
+    private void refresh() {
         if (!Utils.isOnline(getActivity())) {
-            mFeedManager.loadCache(Settings.CATEGORY_LIST.get(mCategoryId).getUrl(useProxy), mCategoryId);
+            mFacebookFeedManager.loadCache(Settings.URL_FACEBOOK, mCategoryId);
             Toast.makeText(getActivity(), R.string.no_internet, Toast.LENGTH_SHORT).show();
             return;
         }
-        if (!mLastUseProxyState && !useProxy) {
-            Log.d("GetFeed", "No connection");
-            return;
-        }
-        mLastUseProxyState = useProxy;
-        mFeedManager.clear();
-        mFeedManager.load(Settings.CATEGORY_LIST.get(mCategoryId).getUrl(useProxy), mFirstLoad, mCategoryId);
+        mFacebookFeedManager.clear();
+        mFacebookFeedManager.load(Settings.URL_FACEBOOK, mFirstLoad, mCategoryId);
         mFirstLoad = false;
         mSwipeLayout.setRefreshing(true);
         mHandler.postDelayed(mCheckFinish, 200);
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-        // Activities containing this fragment must implement its callbacks.
-        if (!(activity instanceof Callbacks)) {
-            throw new IllegalStateException("Activity must implement fragment's callbacks.");
-        }
-
-        mCallbacks = (Callbacks) activity;
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-
-        // Reset the active callbacks interface to the dummy implementation.
-        mCallbacks = sDummyCallbacks;
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (mActivatedPosition != ListView.INVALID_POSITION) {
-            // Serialize and persist the activated item position.
+        // Serialize and persist the activated item position.
+        if (mActivatedPosition != ListView.INVALID_POSITION)
             outState.putInt(STATE_ACTIVATED_POSITION, mActivatedPosition);
-        }
     }
 
     public void notifyDataSetChanged() {
+        Log.d("GetFeed", "notifyDataSetChanged");
         if (mAdapter == null) {
-            mAdapter = new FeedAdapter(getActivity());
+            mAdapter = new FacebookFeedAdapter(getActivity());
             ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
         }
-        mAdapter.setData(mFeedManager.get());
         mAdapter.notifyDataSetChanged();
-//        if (!mFeedManager.isLoading())
-//            mSwipeLayout.setRefreshing(false);
-    }
+        mAdapter.setData(mFacebookFeedManager.get());
 
-    /**
-     * A callback interface that all activities containing this fragment must
-     * implement. This mechanism allows activities to be notified of item
-     * selections.
-     */
-    public interface Callbacks {
-        /**
-         * Callback for when an item has been selected.
-         */
-        void onItemSelected(int id, FeedItem item);
+        if (mFacebookFeedManager != null && mFacebookFeedManager.get().size() > 0) {
+            mSwipeLayout.setVisibility(View.VISIBLE);
+            mSwipeLayoutEmpty.setVisibility(View.GONE);
+        } else {
+            mSwipeLayout.setVisibility(View.GONE);
+            mSwipeLayoutEmpty.setVisibility(View.VISIBLE);
+        }
+        Log.d("GetFeed", "size: " + mFacebookFeedManager.get().size());
     }
 
 }

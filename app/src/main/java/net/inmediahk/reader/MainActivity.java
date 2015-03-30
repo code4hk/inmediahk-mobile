@@ -13,6 +13,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.ShareActionProvider;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -36,6 +37,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
      * {@link android.support.v4.app.FragmentStatePagerAdapter}.
      */
     SectionsPagerAdapter mSectionsPagerAdapter;
+//    SamplePagerAdapter mSamplePagerAdapter;
     /**
      * The {@link ViewPager} that will host the section contents.
      */
@@ -60,7 +62,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         final ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
-        for (int x = 0; x < Settings.TOTAL_TABS; x++) {
+        Bundle arguments = new Bundle();
+        FacebookListFragment fragment = new FacebookListFragment();
+        fragment.setArguments(arguments);
+        mFragmentArray.add(getCategory(0));
+        mFragmentArray.add(fragment);
+        for (int x = 1; x < Settings.TOTAL_TABS; x++) {
             mFragmentArray.add(getCategory(x));
         }
 
@@ -71,10 +78,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         // Set up the ViewPager with the sections adapter.
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        // When swiping between different sections, select the corresponding
-        // tab. We can also use ActionBar.Tab#select() to do this if we have
-        // a reference to the Tab.
         mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
@@ -89,38 +92,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
             // the TabListener interface, as the callback (listener) for when
             // this tab is selected.
             actionBar.addTab(
-                    actionBar.newTab()
+                    getSupportActionBar().newTab()
                             .setText(mSectionsPagerAdapter.getPageTitle(i))
                             .setTabListener(this));
         }
-
-//        if (findViewById(R.id.item_detail_container) != null) {
-//            // The detail container view will be present only in the
-//            // large-screen layouts (res/values-large and
-//            // res/values-sw600dp). If this view is present, then the
-//            // activity should be in two-pane mode.
-//            mTwoPane = true;
-//
-//            // In two-pane mode, list items should be given the
-//            // 'activated' state when touched.
-////            ((ItemListFragment) getSupportFragmentManager()
-////                    .findFragmentById(R.id.item_list))
-////                    .setActivateOnItemClick(true);
-//        } else {
-//
-//            new Handler().post(new Runnable() {
-//                public void run() {
-//                    try {
-//                        if (getSupportFragmentManager().findFragmentById(R.id.item_list) == null)
-//                            getSupportFragmentManager().beginTransaction()
-//                                    .add(R.id.item_list, new ItemListFragment())
-//                                    .commit();
-//                    } catch (IllegalStateException e ) {
-//
-//                    }
-//                }
-//            });
-//        }
     }
 
     @Override
@@ -174,7 +149,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
     }
 
     public void onEventMainThread(Events.FeedAdapterUpdatedEvent event) {
-        ((ItemListFragment) mFragmentArray.get(event.id)).notifyDataSetChanged();
+//        mSamplePagerAdapter.notifyDataSetChanged(event.id);
+        Log.d("GetFeed", "FeedAdapterUpdatedEvent id: " + event.id);
+        if (event.id == 1)
+            ((FacebookListFragment) mFragmentArray.get(event.id)).notifyDataSetChanged();
+        else
+            ((ItemListFragment) mFragmentArray.get(event.id)).notifyDataSetChanged();
     }
 
     @Override
@@ -204,7 +184,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
         if (currentItem == null) return null;
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("text/plain");
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+//        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         intent.putExtra(Intent.EXTRA_SUBJECT, currentItem.getTitle());
         intent.putExtra(Intent.EXTRA_TEXT, currentItem.getLink());
         return intent;
@@ -229,27 +209,29 @@ public class MainActivity extends ActionBarActivity implements ActionBar.TabList
 
         @Override
         public int getCount() {
-            return Settings.TOTAL_TABS;
+            return Settings.TOTAL_TABS + 1;
         }
 
         @Override
         public CharSequence getPageTitle(int position) {
             switch (position) {
                 case 1:
-                    return Settings.CATEGORY_LIST.get(1).getName();
+                    return getString(R.string.fb_news);
                 case 2:
-                    return Settings.CATEGORY_LIST.get(2).getName();
+                    return Settings.CATEGORY_LIST.get(1).getName();
                 case 3:
-                    return Settings.CATEGORY_LIST.get(3).getName();
+                    return Settings.CATEGORY_LIST.get(2).getName();
                 case 4:
-                    return Settings.CATEGORY_LIST.get(4).getName();
+                    return Settings.CATEGORY_LIST.get(3).getName();
                 case 5:
-                    return Settings.CATEGORY_LIST.get(5).getName();
+                    return Settings.CATEGORY_LIST.get(4).getName();
                 case 6:
-                    return Settings.CATEGORY_LIST.get(6).getName();
+                    return Settings.CATEGORY_LIST.get(5).getName();
                 case 7:
-                    return Settings.CATEGORY_LIST.get(7).getName();
+                    return Settings.CATEGORY_LIST.get(6).getName();
                 case 8:
+                    return Settings.CATEGORY_LIST.get(7).getName();
+                case 9:
                     return Settings.CATEGORY_LIST.get(8).getName();
                 case 0:
                 default:

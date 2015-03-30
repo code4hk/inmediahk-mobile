@@ -16,6 +16,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
+import net.inmediahk.reader.Model.FacebookItem;
 import net.inmediahk.reader.Model.FeedItem;
 import net.inmediahk.reader.R;
 
@@ -47,7 +48,23 @@ public class Utils {
 //        tintManager.setStatusBarTintDrawable(MyDrawable);
     }
 
-    public static ArrayList<FeedItem> getStringProperty(Context context, String key) {
+    public static ArrayList<FacebookItem> getFacebookProperty(Context context, String key) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(context.getApplicationInfo().name, Activity.MODE_PRIVATE);
+        final String data = sharedPreferences.getString(key, null);
+        if (TextUtils.isEmpty(data))
+            return null;
+        Gson gson = new Gson();
+        JsonParser parser = new JsonParser();
+        JsonArray arr = parser.parse(data).getAsJsonArray();
+//        FeedItem[] feedItems = new FeedItem[arr.size()];
+        ArrayList<FacebookItem> feedItems = new ArrayList<FacebookItem>();
+//        int i=0;
+        for (JsonElement jsonElement : arr)
+            feedItems.add(gson.fromJson(jsonElement, FacebookItem.class));
+        return feedItems;
+    }
+
+    public static ArrayList<FeedItem> getFeedProperty(Context context, String key) {
         SharedPreferences sharedPreferences = context.getSharedPreferences(context.getApplicationInfo().name, Activity.MODE_PRIVATE);
         final String data = sharedPreferences.getString(key, null);
         if (TextUtils.isEmpty(data))
@@ -63,7 +80,7 @@ public class Utils {
         return feedItems;
     }
 
-    public static void setStringProperty(Context context, String key, ArrayList<FeedItem> feedItem) {
+    public static void setFeedProperty(Context context, String key, ArrayList<FeedItem> feedItem) {
         SharedPreferences mPrefs=context.getSharedPreferences(context.getApplicationInfo().name, Context.MODE_PRIVATE);
         SharedPreferences.Editor ed=mPrefs.edit();
         Gson gson = new Gson();

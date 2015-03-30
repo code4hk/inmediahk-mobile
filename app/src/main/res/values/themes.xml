@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.MyTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Set AppCompat’s actionBarStyle -->
+        <item name="actionBarStyle">@style/Theme.Orange</item>
+
+        <!--&lt;!&ndash; Set AppCompat’s color theming attrs &ndash;&gt;-->
+        <!--<item name="colorPrimary">@color/app_color</item>-->
+        <!--<item name="colorPrimaryDark">@color/app_bg_color</item>-->
+
+        <!--&lt;!&ndash; colorAccent is used as the default value for colorControlActivated-->
+        <!--which is used to tint widgets &ndash;&gt;-->
+        <!--<item name="colorAccent">@color/app_color</item>-->
+        <!-- The rest of your attributes -->
+    </style>
+</resources>
